@@ -11,7 +11,7 @@
 
 ///////////////////DECLARATIONS////////////////////////////////////////////////
 
-int N = 16; // The order of the FFT
+int N = 256; // The order of the FFT
 
 #define M_PI acos(-1.0)
 #define I sqrt(-1)
@@ -19,7 +19,7 @@ int N = 16; // The order of the FFT
 void SystemClock_Config(void);
 void LCD_Intitialisation(void);
 void LCD_SetupAxes(void);
-void PlotFunction(double F[N]);
+void PlotFunction(float F[N]);
 
 
 
@@ -37,13 +37,19 @@ int main(void){
 	LCD_SetupAxes();
 
 	//Let's define a testing input signal
-	double Y [N];
-	double t = 0.000025;//1/5000; //Minimum timestep
+	float Y [N];
+	float t = 0.000025;//1/5000; //Minimum timestep
 	int f = 500; //Define the signal frequency
 	//Now assign it to a variable
 	for (int i = 0; i<N ; i++){
 		Y[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
-		}
+		//Y[i] = 10*i;
+	}
+
+	float YOG [N];
+	for (int i = 0; i<N; i++){
+		YOG[i] = Y[i];
+	}
 
 
 
@@ -54,24 +60,68 @@ int main(void){
 		twiddle_real[i] = 0;
 		twiddle_imag[i] = 0;
 	}
-	for (int i=0;i< 2*N;i++){
-		float complex twiddle = expf(-((I*2*M_PI*i)/N));	/*Twiddle factor formula*/
-		twiddle_real[i] = creal(twiddle);
-		twiddle_imag[i] = cimag(twiddle);
+	//float complex twiddle;
+	for (int i=0; i< N; i++){
+	//	twiddle = expf(-((I*2*M_PI*i)/N));	/*Twiddle factor formula*/
+	//	twiddle_real[i] = creal(twiddle);
+	//	twiddle_imag[i] = cimag(twiddle);
+		twiddle_real[i] = cos((2*M_PI*i)/N);
+		twiddle_imag[i] = sin((2*M_PI*i)/N);
 	}
 
 
-	//Now let's sort the data for butterfly processing
 
-	/////////YEAH this will come later
+	//PlotFunction(Y);
+
+	//Now let's sort the data for butterfly processing
+	float Ytemp [N];
+
+	for (int i = 0; i < (log2(N)-1); i++){
+		int p = pow(2,i);
+		float oddeven_arr[N/p];
+				//oddeven function now
+		for (int j = 0; j < N; j = j + (N/p)){
+			for (int k = j; k < j+(N/p); k++){//Divide up the data
+				oddeven_arr[k] = Y[k];
+
+			}
+
+			int L = N/p;//sizeof(oddeven_arr);
+			float z[L];						/*empty array*/
+			for (int k = 0; k < L/2; k++){			/*Only need to loop through half the*/
+				z[k] = oddeven_arr[2*k];			/*length. Will place every even sample at the sfirst*/
+				//z[L-k-1] = oddeven_arr[L-(2*k)-1];	/*half and every odd sample at the second half*/
+			}
+			for (int k =0; k < L/2; k++){
+				z[L-k-1] = oddeven_arr[L-(2*k)-1];
+			}
+
+			for (int k = j; k < j + (N/p); k++){//Return the ordered sata
+				Ytemp[k] = z[k];
+			}
+		}
+		for (int k = 0; k < N; k++){
+			Y[k] = Ytemp[k];
+		}
+	}
+
+
+	//PlotFunction(Y);
+
+
+
+
 
 
 	//Now let's do the Butterfly processing
 	//start by declaring the variables and arrays that will be needed
-	float YSorted [16] = {1.0, 1.0000000000000013, 1.0000000000000007, 1.0000000000000029, 0.9999999999999997, 1.0000000000000007, 0.9999999999999986, 1.0000000000000009, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.7071067811865475, 1.707106781186548, 1.707106781186548, 1.7071067811865475, 0.29289321881345254, 0.29289321881344976, 0.2928932188134521, 0.2928932188134524, 1.7071067811865472, 1.7071067811865475, 1.707106781186547, 1.7071067811865461, 0.2928932188134523, 0.2928932188134513, 0.29289321881345276, 0.29289321881345365};
+	//float YSorted [16] = {1.0, 1.0000000000000013, 1.0000000000000007, 1.0000000000000029, 0.9999999999999997, 1.0000000000000007, 0.9999999999999986, 1.0000000000000009, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.7071067811865475, 1.707106781186548, 1.707106781186548, 1.7071067811865475, 0.29289321881345254, 0.29289321881344976, 0.2928932188134521, 0.2928932188134524, 1.7071067811865472, 1.7071067811865475, 1.707106781186547, 1.7071067811865461, 0.2928932188134523, 0.2928932188134513, 0.29289321881345276, 0.29289321881345365};
+	float YSorted [sizeof(Y)/sizeof(float)];
+	for (int k = 0; k < sizeof(Y)/sizeof(float); k++){
+		YSorted[k] = Y[k];
+	}
 	float YT_real [N];
 	float YT_imag [N];
-
 	int twdAreal;
 	int twdAimag;
 	int twdBreal;
@@ -81,23 +131,23 @@ int main(void){
 		YT_real[i] = 0;
 		YT_imag[i] = 0;
 	}
-	/*First we need to loop for each layer of the butterfly diagram*/
+		/*First we need to loop for each layer of the butterfly diagram*/
 	for (int i=0; i<log2(N); i++){
-		int s = pow(-2,i);					/*the skipping factor*/
+		int s = -pow(2,i);					/*the skipping factor*/
 		for (int j=0; j<N; j++){
-			if (j%((int)pow(2,i))){	/*Make the  skipping factor + or -*/
+			if (j % ((int)(pow(2,i))) == 0){	/*Make the  skipping factor + or -*/
 				s = s * -1;
 			}
-			/*Now we need to get the correct twiddle factors*/
-			if (s>0){						/*If we retrieving from bellow*/
+				/*Now we need to get the correct twiddle factors*/
+			if (s > 0){						/*If we retrieving from bellow*/
 				twdAreal = 1;
-				twdAimag = 0;
+				twdAimag = 1;
 				twdBreal = twiddle_real[((int)(j*(N/(pow(2,i+1))))%N)];
 				twdBimag = twiddle_imag[((int)(j*(N/(pow(2,i+1))))%N)];
 			}
 			else{							/*else retrieve from above*/
 				twdBreal = 1;
-				twdBimag = 0;
+				twdBimag = 1;
 				twdAreal = twiddle_real[((int)(j*(N/(pow(2,i+1))))%N)];
 				twdAimag = twiddle_imag[((int)(j*(N/(pow(2,i+1))))%N)];
 			}
@@ -113,11 +163,13 @@ int main(void){
 	}
 
 
+	PlotFunction(Y);
 
 
 //Now we will enter into the main loop of the program
 while(1){
-	PlotFunction(Y);
+
+
 	}
 }
 
@@ -188,28 +240,29 @@ void LCD_SetupAxes(void)
 	BSP_LCD_DisplayChar(180,0,0x7A);
 }
 //////////Plot a given function
-void PlotFunction(double F[N]){
+void PlotFunction(float F[N]){
 	BSP_LCD_SetTextColor(LCD_COLOR_RED);
 //Scale F to the desired values
 	float FO [N];
-	for (int i = 0; i<(N/2); i++){
-		FO[i] =  (20*F[i]);
+	for (int i = 0; i < (N); i++){
+		FO[i] =  (F[i]/(22*N));
 	}
 //Now plot the data
 	int j = 41;
-	for (int i = 0; i < (N/2); i++){
+	for (int i = 0; i < (N); i++){
 		//We are making every 2 pixels 1 data bin.
 		//Add a loop here to make sure it uses up the full available space
-		while (j <= 2*((i+1)*(256/N))){
-			BSP_LCD_DrawVLine(j, 31, (int) FO[i]);
-			j = j+1;
-		}
+		BSP_LCD_DrawVLine(j, 31,  FO[i]);
+		j = j+1;
+		BSP_LCD_DrawVLine(j, 31,  FO[i]);
+		j = j+1;
+
+
+		//BSP_LCD_DrawVLine(j, 31,  FO[i]);
+		//j = j+1;
+
 	}
 
 }
-//////////OddEven
-//This function will divide an array by it's index.
-//Odd indexes first, even indexes second
 
 /////////////////////////////////////END///////////////////////////////////////
-
