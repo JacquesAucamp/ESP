@@ -2,11 +2,20 @@
 #include "stm32f4xx.h"
 #include "stm32f429i_discovery.h"
 #include "stm32f429i_discovery_lcd.h"
+#include "stdlib.h"
+#include "math.h"
+#include "stdio.h"
 
 ///////////////////DECLARATIONS////////////////////////////////////////////////
 
+int N = 256; // The order of the FFT
+
 void SystemClock_Config(void);
 void LCD_Intitialisation(void);
+void LCD_SetupAxes(void);
+void PlotFunction(double F[N]);
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -17,19 +26,20 @@ HAL_Init();
 SystemClock_Config();
 	//Now initialise the LCD and setup it's parameters and conditions
 LCD_Intitialisation();
+LCD_SetupAxes();
 
-int x = 10;
-int y = 10;
-int l = 100;
+//Let's define a testing input signal
+double Y [N];
+double t = 0.000025;//1/5000; //Minimum timestep
+int f = 500; //Define the signal frequency
+//Now assign it to a variable
+for (int i = 0; i<N ; i = i+1){
+	Y[i] = 2000*sin(2*3.1415167*(f*t)*i)+2000;
+}
 
 //Now we will enter into the main loop of the program
 while(1){
-	BSP_LCD_DrawHLine(x,y,l);
-	BSP_LCD_DrawVLine(x,y,l);
-	//BSP_DrawChar(x,y,"R");
-	BSP_LCD_DisplayChar(x,y,0x52);
-
-
+	PlotFunction(Y);
 	}
 }
 
@@ -84,4 +94,40 @@ void LCD_Intitialisation(void)
 	BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
 
 }
+/////////LCD AXES setup
+void LCD_SetupAxes(void)
+{
+	BSP_LCD_Clear(LCD_COLOR_BLACK);  //Clear and set the colour
+	BSP_LCD_SetTextColor(LCD_COLOR_GREEN); //Set the axis colour
+	BSP_LCD_DrawHLine(40,30,260); //Draw the axis
+	BSP_LCD_DrawVLine(40,30,200);
+	BSP_LCD_DisplayChar(5,140,0x56); //Add the V dB
+	BSP_LCD_DisplayChar(5,120,0x64);
+	BSP_LCD_DisplayChar(20,120,0x42);
+	BSP_LCD_DisplayChar(125,0,0x66); //Add the f KHz
+	BSP_LCD_DisplayChar(150,0,0x4B);
+	BSP_LCD_DisplayChar(165,0,0x48);
+	BSP_LCD_DisplayChar(180,0,0x7A);
+}
+//////////Plot a given function
+void PlotFunction(double F[N]){
+	BSP_LCD_SetTextColor(LCD_COLOR_RED);
+//Scale F to the desired values
+	for (int i = 0; i<(N/2); i = i+1){
+		F[i] =  F[i]/22;
+	}
+//Now plot the data
+	int j = 41;
+	for (int i = 0; i <(N/2); i = i+1){
+		//We are making every 2 pixels 1 data bin.
+		BSP_LCD_DrawVLine(j, 31,(int) F[i]);
+		j = j+1;
+		BSP_LCD_DrawVLine(j, 31, (int) F[i]);
+		j=j+1;
+	}
+
+}
+
+
+/////////////////////////////////////END///////////////////////////////////////
 
