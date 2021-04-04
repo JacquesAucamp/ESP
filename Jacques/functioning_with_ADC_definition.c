@@ -16,6 +16,8 @@ int N = 256; // The order of the FFT
 #define M_PI acos(-1.0)
 #define I sqrt(-1)
 ADC_HandleTypeDef hadc1;
+UART_HandleTypeDef huart2;
+uint16_t adc_value;
 //----------------------------------------------------------------------------
 
 //Private Functions-----------------------------------------------------------
@@ -26,8 +28,22 @@ void PlotFunction(float F[N]);
 //ADC Setup
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
+int __io_putchar(int ch);
+int _write(int file,char *ptr, int len);
 //----------------------------------------------------------------------------
+/* USER CODE BEGIN 0 */
 
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc1)
+{
+	adc_value = HAL_ADC_GetValue(hadc1);
+	printf("\n\r ADC val == %d", adc_value);
+
+	HAL_ADC_Start_IT(hadc1); // Re-Start ADC1 under Interrupt
+                         // this is necessary because we don'use
+                         // the Continuos Conversion Mode
+}
+
+/* USER CODE END 0 */
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,6 +60,9 @@ int main(void){
 	//Initialize ADC stuff
 	MX_GPIO_Init();
 	MX_ADC1_Init();
+	/* USER CODE BEGIN 2 */
+	HAL_ADC_Start_IT(&hadc1); // Start ADC1 under Interrupt
+	/* USER CODE END 2 */
 
 	//Let's define a testing input signal
 	float Y [N];
@@ -335,6 +354,24 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+int __io_putchar2(int ch)
+{
+	uint8_t c[1];
+	c[0] = ch & 0x00FF;
+	HAL_UART_Transmit(&huart2, &*c, 1, 10);
+	return ch;
+}
+
+int _write2(int file,char *ptr, int len)
+{
+	int DataIdx;
+	for(DataIdx= 0; DataIdx< len; DataIdx++)
+	{
+		__io_putchar(*ptr++);
+	}
+	return len;
+}
 
 /* USER CODE END 4 */
 
