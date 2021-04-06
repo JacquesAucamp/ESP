@@ -10,20 +10,33 @@
 #include <string.h>
 #include <stdbool.h>
 
+
+
 ///////////////////DECLARATIONS////////////////////////////////////////////////
 
 //Private Variables ----------------------------------------------------------
-int N = 256; // The order of the FFT
-float twiddle_real[256];			/*Create an empty complex array*/
-float twiddle_imag[256];		//Used to store the twiddle factors
-float ADC_1 [256];
-float ADC_2 [256];
-bool flag_1 = 0;
-bool flag_2 = 0;
-int ADCCounter = 0;
-
+# define N 128
 #define M_PI acos(-1.0)
 #define I sqrt(-1)
+
+//int N = 128; // The order of the FFT
+float twiddle_real[N];			/*Create an empty complex array*/
+float twiddle_imag[N];		//Used to store the twiddle factors
+float ADC_1 [N];
+float ADC_2 [N];
+bool flag_1 = 0;
+bool flag_2 = 0;
+
+float Y [N];
+float t = 0.000025;//1/4000; //Minimum timestep
+int f = 10000; //Define the signal frequency
+
+int adc_value;
+int ADCCounter = 0;
+
+
+
+ADC_HandleTypeDef g_AdcHandle;
 
 //----------------------------------------------------------------------------
 
@@ -34,9 +47,71 @@ void LCD_SetupAxes(void);
 void PlotFunction(float F[N]);
 void ProcessData(float Y[N]);
 void TwiddleInit(void);
+void ADCInit(void);
+void ClearDrawSpace(void);
 
 
 
+
+
+    void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle)
+    {
+    	//Poll for end of ADC conversion
+        if (HAL_ADC_PollForConversion(&g_AdcHandle, 1000000) == HAL_OK)
+         {
+             adc_value = HAL_ADC_GetValue(&g_AdcHandle);//Read ADC value
+         }
+
+
+    	//Place the ADC value into the correct array
+    	if (ADCCounter < N){
+    		ADC_1[ADCCounter] = adc_value;
+    		ADCCounter ++;
+    	}
+    	else {
+    		ADC_1[ADCCounter - N] = adc_value;
+    		flag_2 = 1;
+    		ADCCounter ++;
+    	}
+
+    	if (ADCCounter == N){
+    		flag_1 = 1;
+    	}
+    	if (ADCCounter == 2*N){
+    		flag_2 = 1;
+    		ADCCounter = 0;
+    		f = f+0.1 ;
+    	}
+
+
+    	/*if (flag_1 == 1){
+
+				//Now assign it to a variable
+			for (int i = 0; i<N ; i++){
+				Y[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
+			}
+			for (int i = 0; i < N; i++){
+				ADC_1[i] = ADC_1[i] + Y[i];
+			}
+    	}
+    	if (flag_2 == 1){
+
+				//Now assign it to a variable
+			for (int i = 0; i<N ; i++){
+				Y[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
+			}
+			for (int i = 0; i < N; i++){
+				ADC_2[i] = ADC_2[i] + Y[i];
+			}
+    	}*/
+
+
+    }
+
+    void ADC_IRQHandler()
+    {
+        HAL_ADC_IRQHandler(&g_AdcHandle);
+    }
 
 
 
@@ -55,22 +130,9 @@ int main(void){
 	LCD_SetupAxes();
 		//Now lets Define the Twiddle Factors
 	TwiddleInit();
-
-
-	//Place the bellow code into the subroutine that the ADC interrupt calls
-	/*if (ADCCounter < N){
-		ADC_1[ADCCounter] = adc_value;
-		flag_1 = 1;
-		ADCCounter ++;
-	}
-	else {
-		ADC_1[ADCCounter - N] = adc_value;
-		flag_2 = 1;
-		ADCCounter ++;
-	}
-	if (ADCCounter == 2*N){
-		ADCCounter = 0;
-	}*/
+		//Now let's Initialise the ADC
+	ADCInit();
+    HAL_ADC_Start_IT(&g_AdcHandle);
 
 
 
@@ -79,7 +141,7 @@ int main(void){
 //Now we will enter into the main loop of the program
 while(1){
 	//Let's define a testing input signal
-		/*float Y [N];
+	/*	float Y [N];
 		float t = 0.000025;//1/4000; //Minimum timestep
 		int f = 10000; //Define the signal frequency
 		//Now assign it to a variable
@@ -87,10 +149,11 @@ while(1){
 			Y[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
 			//Y[i] = 10*i;
 		}
-	flag_1 = 1;
-	for (int i = 0; i < N; i++){
-		ADC_1[i] = Y[i];
-	}*/
+		flag_1 = 1;
+		for (int i = 0; i < N; i++){
+			ADC_1[i] = Y[i];
+			ADC_2[i] = Y[i];
+		}*/
 
 
 	if (flag_1 == 1){
@@ -117,6 +180,26 @@ while(1){
 //The system clock initialisation process
 //It's a bit long and there is a lot going on there
 void SystemClock_Config(void){
+	/* @brief System Clock Configuration
+	* The system Clock is configured as follow :
+	* System Clock source = PLL (HSE)
+	* SYSCLK(Hz) = 168000000
+	* HCLK(Hz) = 168000000
+	* AHB Prescaler = 1
+	* APB1 Prescaler = 4
+	* APB2 Prescaler = 2
+	* HSE Frequency(Hz) = HSE_VALUE
+	* PLL_M = (HSE_VALUE/1000000u)
+	* PLL_N = 336
+	* PLL_P = 2
+	* PLL_Q = 7
+	* VDD(V) = 3.3
+	* Main regulator output voltage = Scale1 mode
+	* Flash Latency(WS) = 5
+	* @param None
+	* @retval None
+	*/
+	{
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 	RCC_OscInitTypeDef RCC_OscInitStruct;
 	// Enable Power Control clock
@@ -147,6 +230,7 @@ void SystemClock_Config(void){
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
+	}
 }
 
 ///////////LCD_Initialise
@@ -157,10 +241,8 @@ void LCD_Intitialisation(void)
 	BSP_LCD_LayerDefaultInit(LCD_FOREGROUND_LAYER,LCD_FRAME_BUFFER);
 	BSP_LCD_SelectLayer(LCD_FOREGROUND_LAYER);
 	BSP_LCD_DisplayOn();
-	BSP_LCD_Clear(LCD_COLOR_BLACK);
 	BSP_LCD_SelectLayer(LCD_BACKGROUND_LAYER);
 	BSP_LCD_SetBackColor(LCD_COLOR_BLACK);
-	BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
 
 }
 /////////LCD AXES setup
@@ -194,6 +276,15 @@ void TwiddleInit(void){
 		twiddle_imag[i] = sin((2*M_PI*i)/N);
 	}
 }
+//////////Clear the drawing space to allow for a new plot
+void ClearDrawSpace(void){
+	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+	for (int i = 41; i <= 300; i++){
+		BSP_LCD_DrawVLine(i, 31,  200);
+	}
+	//LCD_SetupAxes();
+	//BSP_LCD_FillRect(41,31,280,200);
+}
 //////////Plot a given function
 void PlotFunction(float F[N]){
 
@@ -204,24 +295,23 @@ void PlotFunction(float F[N]){
 		//FO[i] =  (F[i]/(22));
 	}
 //Let's clear the display
-	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-	BSP_LCD_FillRect(41,31,260,200);
-	BSP_LCD_SetTextColor(LCD_COLOR_RED);
+	//ClearDrawSpace();
+	//BSP_LCD_SetTextColor(LCD_COLOR_RED);
 //Now plot the data
 	int j = 41;
 	for (int i = 0; i < (N/2); i++){
 		//We are making every 2 pixels 1 data bin.
 		//Add a loop here to make sure it uses up the full available space
 		while (j < (i+1)*(256/(N/2)) + 41){
-			BSP_LCD_DrawVLine(j, 31,  FO[i]);
+			BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+			BSP_LCD_DrawVLine(j, 31,  200);
+			BSP_LCD_SetTextColor(LCD_COLOR_RED);
+			if (FO[i] >=1){
+				BSP_LCD_DrawVLine(j, 31,  FO[i]);
+			}
 			j = j+1;
 		}
 
-
-
-
-		//BSP_LCD_DrawVLine(j, 31,  FO[i]);
-		//j = j+1;
 
 	}
 
@@ -311,9 +401,53 @@ void ProcessData(float Y[N]){
 
 
 }
+////////////Initialise the ADC
+void ADCInit(void){
+	GPIO_InitTypeDef gpioInit;
 
+	    __GPIOC_CLK_ENABLE();
+	    __ADC1_CLK_ENABLE();
+
+	    gpioInit.Pin = GPIO_PIN_1;
+	    gpioInit.Mode = GPIO_MODE_ANALOG;
+	    gpioInit.Pull = GPIO_NOPULL;
+	    HAL_GPIO_Init(GPIOC, &gpioInit);
+
+	    HAL_NVIC_SetPriority(ADC_IRQn, 0, 0);
+	    HAL_NVIC_EnableIRQ(ADC_IRQn);
+
+	    ADC_ChannelConfTypeDef adcChannel;
+
+	    g_AdcHandle.Instance = ADC1;
+
+	    g_AdcHandle.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV2;
+	    g_AdcHandle.Init.Resolution = ADC_RESOLUTION_12B;
+	    g_AdcHandle.Init.ScanConvMode = DISABLE;
+	    g_AdcHandle.Init.ContinuousConvMode = ENABLE;
+	    g_AdcHandle.Init.DiscontinuousConvMode = DISABLE;
+	    g_AdcHandle.Init.NbrOfDiscConversion = 0;
+	    g_AdcHandle.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+	    g_AdcHandle.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC1;
+	    g_AdcHandle.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+	    g_AdcHandle.Init.NbrOfConversion = 1;
+	    g_AdcHandle.Init.DMAContinuousRequests = ENABLE;
+	    g_AdcHandle.Init.EOCSelection = DISABLE;
+
+	    HAL_ADC_Init(&g_AdcHandle);
+
+	    adcChannel.Channel = ADC_CHANNEL_11; //PIN PC1
+	    adcChannel.Rank = 1;
+	    adcChannel.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+	    adcChannel.Offset = 0;
+
+	    if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
+	    {
+	        asm("bkpt 255");
+	    }
+}
 
 
 
 
 /////////////////////////////////////END///////////////////////////////////////
+
