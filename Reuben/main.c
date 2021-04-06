@@ -15,7 +15,7 @@
 ///////////////////DECLARATIONS////////////////////////////////////////////////
 
 //Private Variables ----------------------------------------------------------
-# define N 128
+# define N 256
 #define M_PI acos(-1.0)
 #define I sqrt(-1)
 
@@ -27,7 +27,7 @@ float ADC_2 [N];
 bool flag_1 = 0;
 bool flag_2 = 0;
 
-float Y [N];
+float Signal [N];
 float t = 0.000025;//1/4000; //Minimum timestep
 int f = 10000; //Define the signal frequency
 
@@ -69,7 +69,7 @@ void ClearDrawSpace(void);
     		ADCCounter ++;
     	}
     	else {
-    		ADC_1[ADCCounter - N] = adc_value;
+    		ADC_2[ADCCounter - N] = adc_value;
     		flag_2 = 1;
     		ADCCounter ++;
     	}
@@ -80,25 +80,23 @@ void ClearDrawSpace(void);
     	if (ADCCounter == 2*N){
     		flag_2 = 1;
     		ADCCounter = 0;
-    		f = f+0.1 ;
+    		//f = f+0.1 ;
     	}
 
 
     	/*if (flag_1 == 1){
-
 				//Now assign it to a variable
 			for (int i = 0; i<N ; i++){
-				Y[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
+				Signal[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
 			}
 			for (int i = 0; i < N; i++){
-				ADC_1[i] = ADC_1[i] + Y[i];
+				ADC_1[i] = ADC_1[i] + Signal[i];
 			}
     	}
     	if (flag_2 == 1){
-
 				//Now assign it to a variable
 			for (int i = 0; i<N ; i++){
-				Y[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
+				Signal[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
 			}
 			for (int i = 0; i < N; i++){
 				ADC_2[i] = ADC_2[i] + Y[i];
@@ -132,6 +130,7 @@ int main(void){
 	TwiddleInit();
 		//Now let's Initialise the ADC
 	ADCInit();
+	HAL_ADC_Start(&g_AdcHandle);
     HAL_ADC_Start_IT(&g_AdcHandle);
 
 
@@ -141,7 +140,7 @@ int main(void){
 //Now we will enter into the main loop of the program
 while(1){
 	//Let's define a testing input signal
-	/*	float Y [N];
+		/*float Y [N];
 		float t = 0.000025;//1/4000; //Minimum timestep
 		int f = 10000; //Define the signal frequency
 		//Now assign it to a variable
@@ -157,8 +156,10 @@ while(1){
 
 
 	if (flag_1 == 1){
+		//PlotFunction(ADC_1);
 		ProcessData(ADC_1);
 		flag_1 = 0;
+		//HAL_Delay(1000);
 	}
 	else if (flag_2 == 1){
 		ProcessData(ADC_2);
@@ -250,16 +251,35 @@ void LCD_SetupAxes(void)
 
 {
 	BSP_LCD_Clear(LCD_COLOR_BLACK);  //Clear and set the colour
-	BSP_LCD_SetTextColor(LCD_COLOR_GREEN); //Set the axis colour
-	BSP_LCD_DrawHLine(40,30,260); //Draw the axis
-	BSP_LCD_DrawVLine(40,30,200);
-	BSP_LCD_DisplayChar(5,140,0x56); //Add the V dB
-	BSP_LCD_DisplayChar(5,120,0x64);
-	BSP_LCD_DisplayChar(20,120,0x42);
-	BSP_LCD_DisplayChar(125,0,0x66); //Add the f KHz
-	BSP_LCD_DisplayChar(150,0,0x4B);
-	BSP_LCD_DisplayChar(165,0,0x48);
-	BSP_LCD_DisplayChar(180,0,0x7A);
+	BSP_LCD_SetTextColor(LCD_COLOR_BLUE); //Set the axis colour
+	BSP_LCD_DrawHLine(60,40,260); //Draw the axis
+	BSP_LCD_DrawVLine(60,40,200);
+
+	//AXIS LABELS
+	BSP_LCD_SetFont(&Font16);
+	BSP_LCD_DisplayStringAt(1,200,(uint8_t *)"V(dB)",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(70,0,(uint8_t *)"f(kHz)",CENTER_MODE);
+	//AXIS VALUES
+	BSP_LCD_SetFont(&Font12);
+	//X-AXIS
+	//Label every 5kHz
+	BSP_LCD_DisplayChar(55,18,0x30);
+	BSP_LCD_DisplayStringAt(124,18,(uint8_t *)"5",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(188,18,(uint8_t *)"10",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(252,18,(uint8_t *)"15",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(305,18,(uint8_t *)"20",LEFT_MODE);
+	//Y-AXIS
+	//Label every 20dB
+	BSP_LCD_DisplayStringAt(45,35,(uint8_t *)"20",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(45,50,(uint8_t *)"40",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(45,65,(uint8_t *)"60",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(45,80,(uint8_t *)"80",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,95,(uint8_t *)"100",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,110,(uint8_t *)"120",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,125,(uint8_t *)"140",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,140,(uint8_t *)"160",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,155,(uint8_t *)"180",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,170,(uint8_t *)"200",LEFT_MODE);
 }
 //////////Calculate the Twiddle factors
 void TwiddleInit(void){
@@ -279,8 +299,8 @@ void TwiddleInit(void){
 //////////Clear the drawing space to allow for a new plot
 void ClearDrawSpace(void){
 	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-	for (int i = 41; i <= 300; i++){
-		BSP_LCD_DrawVLine(i, 31,  200);
+	for (int i = 61; i <= 300; i++){
+		BSP_LCD_DrawVLine(i, 41,  200);
 	}
 	//LCD_SetupAxes();
 	//BSP_LCD_FillRect(41,31,280,200);
@@ -298,16 +318,16 @@ void PlotFunction(float F[N]){
 	//ClearDrawSpace();
 	//BSP_LCD_SetTextColor(LCD_COLOR_RED);
 //Now plot the data
-	int j = 41;
+	int j = 61;
 	for (int i = 0; i < (N/2); i++){
 		//We are making every 2 pixels 1 data bin.
 		//Add a loop here to make sure it uses up the full available space
-		while (j < (i+1)*(256/(N/2)) + 41){
+		while (j < (i+1)*(256/(N/2)) + 61){
 			BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-			BSP_LCD_DrawVLine(j, 31,  200);
-			BSP_LCD_SetTextColor(LCD_COLOR_RED);
+			BSP_LCD_DrawVLine(j, 41,  200);
+			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
 			if (FO[i] >=1){
-				BSP_LCD_DrawVLine(j, 31,  FO[i]);
+				BSP_LCD_DrawVLine(j, 41,  FO[i]);
 			}
 			j = j+1;
 		}
@@ -317,9 +337,11 @@ void PlotFunction(float F[N]){
 
 }
 ///////////Process the data with an FFT algortihm
-void ProcessData(float Y[N]){
-
-
+void ProcessData(float S[N]){
+	float Y [N];
+	for (int i = 0; i<N;i++){
+		Y[i] = S[i];
+	}
 	float Ytemp [N]; //Create a temporary or working array
 		for (int i = 0; i < (log2(N))-1; i++){
 			int p = pow(2,i);
@@ -408,7 +430,7 @@ void ADCInit(void){
 	    __GPIOC_CLK_ENABLE();
 	    __ADC1_CLK_ENABLE();
 
-	    gpioInit.Pin = GPIO_PIN_1;
+	    gpioInit.Pin = GPIO_PIN_1;			//PA0
 	    gpioInit.Mode = GPIO_MODE_ANALOG;
 	    gpioInit.Pull = GPIO_NOPULL;
 	    HAL_GPIO_Init(GPIOC, &gpioInit);
@@ -435,7 +457,7 @@ void ADCInit(void){
 
 	    HAL_ADC_Init(&g_AdcHandle);
 
-	    adcChannel.Channel = ADC_CHANNEL_11; //PIN PC1
+	    adcChannel.Channel = ADC_CHANNEL_11;
 	    adcChannel.Rank = 1;
 	    adcChannel.SamplingTime = ADC_SAMPLETIME_480CYCLES;
 	    adcChannel.Offset = 0;
@@ -450,4 +472,3 @@ void ADCInit(void){
 
 
 /////////////////////////////////////END///////////////////////////////////////
-
