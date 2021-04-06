@@ -130,6 +130,7 @@ int main(void){
 	TwiddleInit();
 		//Now let's Initialise the ADC
 	ADCInit();
+	HAL_ADC_Start(&g_AdcHandle);
     HAL_ADC_Start_IT(&g_AdcHandle);
 
 
@@ -254,14 +255,29 @@ void LCD_SetupAxes(void)
 
 	//AXIS LABELS
 	BSP_LCD_SetFont(&Font16);
-	BSP_LCD_DisplayStringAt(1,220,(uint8_t *)"V(dB)",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(1,200,(uint8_t *)"V(dB)",LEFT_MODE);
 	BSP_LCD_DisplayStringAt(70,0,(uint8_t *)"f(kHz)",CENTER_MODE);
 	//AXIS VALUES
 	BSP_LCD_SetFont(&Font12);
 	//X-AXIS
+	//Label every 5kHz
 	BSP_LCD_DisplayChar(55,18,0x30);
+	BSP_LCD_DisplayStringAt(124,18,(uint8_t *)"5",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(188,18,(uint8_t *)"10",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(252,18,(uint8_t *)"15",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(305,18,(uint8_t *)"20",LEFT_MODE);
 	//Y-AXIS
-
+	//Label every 20dB
+	BSP_LCD_DisplayStringAt(45,35,(uint8_t *)"20",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(45,50,(uint8_t *)"40",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(45,65,(uint8_t *)"60",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(45,80,(uint8_t *)"80",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,95,(uint8_t *)"100",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,110,(uint8_t *)"120",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,125,(uint8_t *)"140",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,140,(uint8_t *)"160",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,155,(uint8_t *)"180",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(35,170,(uint8_t *)"200",LEFT_MODE);
 }
 //////////Calculate the Twiddle factors
 void TwiddleInit(void){
@@ -304,7 +320,7 @@ void PlotFunction(float F[N]){
 	for (int i = 0; i < (N/2); i++){
 		//We are making every 2 pixels 1 data bin.
 		//Add a loop here to make sure it uses up the full available space
-		while (j < (i+1)*(256/(N/2)) + 41){
+		while (j < (i+1)*(256/(N/2)) + 61){
 			BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
 			BSP_LCD_DrawVLine(j, 41,  200);
 			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
@@ -410,7 +426,7 @@ void ADCInit(void){
 	    __GPIOC_CLK_ENABLE();
 	    __ADC1_CLK_ENABLE();
 
-	    gpioInit.Pin = GPIO_PIN_1;
+	    gpioInit.Pin = GPIO_PIN_1;			//PA0
 	    gpioInit.Mode = GPIO_MODE_ANALOG;
 	    gpioInit.Pull = GPIO_NOPULL;
 	    HAL_GPIO_Init(GPIOC, &gpioInit);
@@ -422,7 +438,7 @@ void ADCInit(void){
 
 	    g_AdcHandle.Instance = ADC1;
 
-	    g_AdcHandle.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV2;
+	    g_AdcHandle.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV4;
 	    g_AdcHandle.Init.Resolution = ADC_RESOLUTION_12B;
 	    g_AdcHandle.Init.ScanConvMode = DISABLE;
 	    g_AdcHandle.Init.ContinuousConvMode = ENABLE;
@@ -452,3 +468,4 @@ void ADCInit(void){
 
 
 /////////////////////////////////////END///////////////////////////////////////
+
