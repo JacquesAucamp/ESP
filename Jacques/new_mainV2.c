@@ -75,12 +75,13 @@ void ClearDrawSpace(void);
 
     	if (ADCCounter == N){
     		flag_1 = 1;
-    		HAL_ADC_Stop_IT(&g_AdcHandle);
+    		__disable_irq();
+
     	}
     	if (ADCCounter == (2*N)){
     		flag_2 = 1;
     		ADCCounter = 0;
-    		HAL_ADC_Stop_IT(&g_AdcHandle);
+    		__disable_irq();
     		//f = f+0.1 ;
     	}
 
@@ -161,16 +162,16 @@ while(1){
 
 		ProcessData(ADC_1);
 		flag_1 = 0;
-		HAL_ADC_Start_IT(&g_AdcHandle);
-		//__enable_irq();
+
+		__enable_irq();
 		//HAL_Delay(1000);
 	}
 	else if (flag_2 == 1){
 
 		ProcessData(ADC_2);
 		flag_2 = 0;
-		HAL_ADC_Start_IT(&g_AdcHandle);
-		//__enable_irq();
+
+		__enable_irq();
 	}
 
 
@@ -480,3 +481,4 @@ void ADCInit(void){
 
 
 /////////////////////////////////////END///////////////////////////////////////
+
