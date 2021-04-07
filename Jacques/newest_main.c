@@ -24,10 +24,10 @@ float twiddle_real[N];			/*Create an empty complex array*/
 float twiddle_imag[N];		//Used to store the twiddle factors
 float ADC_1 [N];
 float ADC_2 [N];
-bool flag_1 = 0;
-bool flag_2 = 0;
+int flag_1 = 0;
+int flag_2 = 0;
 
-float Y [N];
+float Signal [N];
 float t = 0.000025;//1/4000; //Minimum timestep
 int f = 10000; //Define the signal frequency
 
@@ -45,7 +45,7 @@ void SystemClock_Config(void);
 void LCD_Intitialisation(void);
 void LCD_SetupAxes(void);
 void PlotFunction(float F[N]);
-void ProcessData(float Y[N]);
+void ProcessData(float S[N]);
 void TwiddleInit(void);
 void ADCInit(void);
 void ClearDrawSpace(void);
@@ -68,35 +68,34 @@ void ClearDrawSpace(void);
     		ADC_1[ADCCounter] = adc_value;
     		ADCCounter ++;
     	}
-    	else {
-    		ADC_1[ADCCounter - N] = adc_value;
-    		flag_2 = 1;
+    	else{
+    		ADC_2[ADCCounter - N] = adc_value;
     		ADCCounter ++;
     	}
 
     	if (ADCCounter == N){
     		flag_1 = 1;
     	}
-    	if (ADCCounter == 2*N){
+    	if (ADCCounter == (2*N)){
     		flag_2 = 1;
     		ADCCounter = 0;
-    		f = f+0.1 ;
+    		//f = f+0.1 ;
     	}
 
 
     	/*if (flag_1 == 1){
 				//Now assign it to a variable
 			for (int i = 0; i<N ; i++){
-				Y[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
+				Signal[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
 			}
 			for (int i = 0; i < N; i++){
-				ADC_1[i] = ADC_1[i] + Y[i];
+				ADC_1[i] = ADC_1[i] + Signal[i];
 			}
     	}
     	if (flag_2 == 1){
 				//Now assign it to a variable
 			for (int i = 0; i<N ; i++){
-				Y[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
+				Signal[i] = 2000*sin(2*M_PI*(f*t)*i)+2000;
 			}
 			for (int i = 0; i < N; i++){
 				ADC_2[i] = ADC_2[i] + Y[i];
@@ -140,7 +139,7 @@ int main(void){
 //Now we will enter into the main loop of the program
 while(1){
 	//Let's define a testing input signal
-	/*	float Y [N];
+		/*float Y [N];
 		float t = 0.000025;//1/4000; //Minimum timestep
 		int f = 10000; //Define the signal frequency
 		//Now assign it to a variable
@@ -156,12 +155,16 @@ while(1){
 
 
 	if (flag_1 == 1){
+		//PlotFunction(ADC_1);
 		ProcessData(ADC_1);
 		flag_1 = 0;
+		//__enable_irq();
+		//HAL_Delay(1000);
 	}
 	else if (flag_2 == 1){
 		ProcessData(ADC_2);
 		flag_2 = 0;
+		//__enable_irq();
 	}
 
 
@@ -227,7 +230,7 @@ void SystemClock_Config(void){
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
 	}
 }
@@ -335,9 +338,12 @@ void PlotFunction(float F[N]){
 
 }
 ///////////Process the data with an FFT algortihm
-void ProcessData(float Y[N]){
-
-
+void ProcessData(float S[N]){
+	//__disable_irq();
+	float Y [N];
+	for (int i = 0; i<N;i++){
+		Y[i] = S[i];
+	}
 	float Ytemp [N]; //Create a temporary or working array
 		for (int i = 0; i < (log2(N))-1; i++){
 			int p = pow(2,i);
@@ -438,7 +444,7 @@ void ADCInit(void){
 
 	    g_AdcHandle.Instance = ADC1;
 
-	    g_AdcHandle.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV4;
+	    //g_AdcHandle.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV4;
 	    g_AdcHandle.Init.Resolution = ADC_RESOLUTION_12B;
 	    g_AdcHandle.Init.ScanConvMode = DISABLE;
 	    g_AdcHandle.Init.ContinuousConvMode = ENABLE;
@@ -455,7 +461,7 @@ void ADCInit(void){
 
 	    adcChannel.Channel = ADC_CHANNEL_11;
 	    adcChannel.Rank = 1;
-	    adcChannel.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+	    adcChannel.SamplingTime = ADC_SAMPLETIME_84CYCLES;
 	    adcChannel.Offset = 0;
 
 	    if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
@@ -468,4 +474,5 @@ void ADCInit(void){
 
 
 /////////////////////////////////////END///////////////////////////////////////
+
 
