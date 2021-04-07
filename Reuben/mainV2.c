@@ -15,7 +15,7 @@
 ///////////////////DECLARATIONS////////////////////////////////////////////////
 
 //Private Variables ----------------------------------------------------------
-# define N 256
+# define N 128
 #define M_PI acos(-1.0)
 #define I sqrt(-1)
 
@@ -73,12 +73,15 @@ void ClearDrawSpace(void);
     		ADCCounter ++;
     	}
 
-    	if (ADCCounter == N-1){
+    	if (ADCCounter == N){
     		flag_1 = 1;
+    		__disable_irq();
+
     	}
-    	if (ADCCounter == (2*N)-1){
+    	if (ADCCounter == (2*N)){
     		flag_2 = 1;
     		ADCCounter = 0;
+    		__disable_irq();
     		//f = f+0.1 ;
     	}
 
@@ -156,15 +159,19 @@ while(1){
 
 	if (flag_1 == 1){
 		//PlotFunction(ADC_1);
+
 		ProcessData(ADC_1);
 		flag_1 = 0;
-		//__enable_irq();
+
+		__enable_irq();
 		//HAL_Delay(1000);
 	}
 	else if (flag_2 == 1){
+
 		ProcessData(ADC_2);
 		flag_2 = 0;
-		//__enable_irq();
+
+		__enable_irq();
 	}
 
 
@@ -461,7 +468,7 @@ void ADCInit(void){
 
 	    adcChannel.Channel = ADC_CHANNEL_11;
 	    adcChannel.Rank = 1;
-	    adcChannel.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+	    adcChannel.SamplingTime = ADC_SAMPLETIME_84CYCLES;
 	    adcChannel.Offset = 0;
 
 	    if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
@@ -474,3 +481,4 @@ void ADCInit(void){
 
 
 /////////////////////////////////////END///////////////////////////////////////
+
