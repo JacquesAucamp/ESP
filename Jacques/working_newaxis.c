@@ -271,22 +271,26 @@ void LCD_SetupAxes(void)
 	//X-AXIS
 	//Label every 5kHz
 	BSP_LCD_DisplayChar(55,18,0x30);
-	BSP_LCD_DisplayStringAt(124,18,(uint8_t *)"5",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(188,18,(uint8_t *)"10",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(252,18,(uint8_t *)"15",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(305,18,(uint8_t *)"20",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(124,8,(uint8_t *)"5",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(124,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(188,8,(uint8_t *)"10",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(188,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(252,8,(uint8_t *)"15",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(252,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(305,8,(uint8_t *)"20",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(305,20,(uint8_t *)"|",LEFT_MODE);
 	//Y-AXIS
 	//Label every 5dB
-	BSP_LCD_DisplayStringAt(37,35,(uint8_t *)"-10",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,50,(uint8_t *)"-5",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(52,65,(uint8_t *)"0",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(52,80,(uint8_t *)"5",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,95,(uint8_t *)"10",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,110,(uint8_t *)"15",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,125,(uint8_t *)"20",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,140,(uint8_t *)"25",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,155,(uint8_t *)"30",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,170,(uint8_t *)"35",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(31,35,(uint8_t *)"-10-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(39,50,(uint8_t *)"-5-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(46,65,(uint8_t *)"0-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(46,80,(uint8_t *)"5-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(39,95,(uint8_t *)"10-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(39,110,(uint8_t *)"15-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(39,125,(uint8_t *)"20-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(39,140,(uint8_t *)"25-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(39,155,(uint8_t *)"30-",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(39,170,(uint8_t *)"35-",LEFT_MODE);
 }
 //////////Calculate the Twiddle factors
 void TwiddleInit(void){
@@ -476,4 +480,5 @@ void ADCInit(void){
 
 
 /////////////////////////////////////END///////////////////////////////////////
+
 
