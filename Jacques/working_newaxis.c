@@ -277,10 +277,10 @@ void LCD_SetupAxes(void)
 	BSP_LCD_DisplayStringAt(305,18,(uint8_t *)"20",LEFT_MODE);
 	//Y-AXIS
 	//Label every 5dB
-	BSP_LCD_DisplayStringAt(35,35,(uint8_t *)"-10",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(37,35,(uint8_t *)"-10",LEFT_MODE);
 	BSP_LCD_DisplayStringAt(45,50,(uint8_t *)"-5",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,65,(uint8_t *)"0",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(45,80,(uint8_t *)"5",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(52,65,(uint8_t *)"0",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(52,80,(uint8_t *)"5",LEFT_MODE);
 	BSP_LCD_DisplayStringAt(45,95,(uint8_t *)"10",LEFT_MODE);
 	BSP_LCD_DisplayStringAt(45,110,(uint8_t *)"15",LEFT_MODE);
 	BSP_LCD_DisplayStringAt(45,125,(uint8_t *)"20",LEFT_MODE);
@@ -476,3 +476,4 @@ void ADCInit(void){
 
 
 /////////////////////////////////////END///////////////////////////////////////
+
