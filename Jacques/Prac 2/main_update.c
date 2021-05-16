@@ -143,9 +143,9 @@ int main(void){
 	LCD_Intitialisation();
 
 	//which axes do you need
-	LCD_SetupAxes();
+	//LCD_SetupAxes();
 	//LCD_SetupTimeAxes();
-	//LCD_SetupTimeFIRAxes();
+	LCD_SetupTimeFIRAxes();
 
 		//Now lets Define the Twiddle Factors
 	TwiddleInit();
@@ -214,8 +214,8 @@ while(1){
 
 	//if button x pressed do one of following:
 	//PlotTimeFunction(Data_Filtered);			//Plot Time Domain Output
-	ProcessData(Data_Filtered);					//Plot Freq Domain Output
-	//PlotTimeFIRFunction(hn);					//Plot Time Domain FIR Coef
+	//ProcessData(Data_Filtered);					//Plot Freq Domain Output
+	PlotTimeFIRFunction(hn);					//Plot Time Domain FIR Coef
 	//ProcessData(hn);							//Plot Freq Domain FIR Coef
 
 	}
@@ -452,7 +452,7 @@ void PlotTimeFunction(float T[N]){
 		FO[i] = F[i];
 	}*/
 	for (int i = 0; i < (N); i++){
-		TO[i] =  10*(T[i]/(N));
+		TO[i] =  1000*(T[i])+50;
 		//FO[i] =  (F[i]/(22));
 	}
 
@@ -465,8 +465,8 @@ void PlotTimeFunction(float T[N]){
 			BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
 			BSP_LCD_DrawVLine(j, 41,  200);
 			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-			if (T[i] >=1){
-				BSP_LCD_DrawVLine(j, 41,  T[i]);
+			if (TO[i] >=1){
+				BSP_LCD_DrawVLine(j, 41,  TO[i]);
 			}
 			j = j+1;
 		}
@@ -492,26 +492,25 @@ void LCD_SetupTimeFIRAxes(void)
 	//X-AXIS
 	//Label every 10 samples
 	BSP_LCD_DisplayChar(55,18,0x30);
-	BSP_LCD_DisplayStringAt(72,8,(uint8_t *)"5",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(72,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(98,8,(uint8_t *)"15",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(98,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(124,8,(uint8_t *)"25",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(124,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(150,8,(uint8_t *)"35",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(150,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(175,8,(uint8_t *)"45",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(75,8,(uint8_t *)"10",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(75,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(95,8,(uint8_t *)"20",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(95,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(115,8,(uint8_t *)"30",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(115,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(135,8,(uint8_t *)"40",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(135,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(155,8,(uint8_t *)"50",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(155,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(175,8,(uint8_t *)"60",LEFT_MODE);
 	BSP_LCD_DisplayStringAt(175,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(200,8,(uint8_t *)"55",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(200,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(226,8,(uint8_t *)"65",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(226,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(251,8,(uint8_t *)"75",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(251,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(276,8,(uint8_t *)"85",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(276,20,(uint8_t *)"|",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(300,8,(uint8_t *)"95",LEFT_MODE);
-	BSP_LCD_DisplayStringAt(300,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(195,8,(uint8_t *)"70",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(195,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(215,8,(uint8_t *)"80",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(215,20,(uint8_t *)"|",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(235,8,(uint8_t *)"90",LEFT_MODE);
+	BSP_LCD_DisplayStringAt(235,20,(uint8_t *)"|",LEFT_MODE);
+
 
 	BSP_LCD_SetFont(&Font12);
 	//Y-AXIS
@@ -547,7 +546,7 @@ void PlotTimeFIRFunction(float FIR[N]){
 		FO[i] = F[i];
 	}*/
 	for (int i = 0; i < (N); i++){
-		FIRO[i] =  (FIR[i]/N);
+		FIRO[i] =  1000*(FIR[i])+50;
 		//FO[i] =  (F[i]/(22));
 	}
 
@@ -560,8 +559,8 @@ void PlotTimeFIRFunction(float FIR[N]){
 			BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
 			BSP_LCD_DrawVLine(j, 41,  200);
 			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-			if (FIR[i] >=-0.03){
-				BSP_LCD_DrawVLine(j, 41,  FIR[i]);
+			if (FIRO[i] >=-0.03){
+				BSP_LCD_DrawVLine(j, 41,  FIRO[i]);
 			}
 			j = j+1;
 		}
@@ -717,3 +716,4 @@ void FIRCoefficientsCalc(void)
 
 
 /////////////////////////////////////END///////////////////////////////////////
+
